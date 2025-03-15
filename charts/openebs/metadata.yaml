@@ -1,4 +1,4 @@
 ---
-registry: https://openebs.github.io/openebs
-chart: openebs
-version: 4.2.0
+registry: https://openebs.github.io/zfs-localpv
+chart: zfs-localpv
+version: 2.7.1
