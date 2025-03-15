@@ -1,4 +1,0 @@
----
-registry: https://wiremind.github.io/wiremind-helm-charts/
-chart: silence-operator
-version: 0.0.7
