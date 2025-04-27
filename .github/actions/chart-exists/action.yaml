@@ -1,0 +1,59 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: Chart Exists
+description: Return true or false if the chart exists in the container registry
+
+inputs:
+  chart:
+    description: Chart Name
+    required: true
+
+outputs:
+  exists:
+    description: Chart Exists
+    value: ${{ steps.chart.outputs.exists }}
+
+runs:
+  using: composite
+  steps:
+    - name: Chart Exists
+      id: chart
+      uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+      with:
+        script: |
+          const chartName = '${{ inputs.chart }}';
+
+          const { data: user } = await github.rest.users.getByUsername({
+              username: context.repo.owner,
+          });
+
+          let container;
+          if (user.type === 'Organization') {
+              try {
+                  const { data } = await github.rest.packages.getPackageForOrganization({
+                      package_type: 'container',
+                      package_name: chartName,
+                      org: context.repo.owner,
+                  });
+                  container = data;
+              } catch (error) {
+                  if (error.status !== 404) {
+                      throw error;
+                  }
+              }
+          } else {
+              try {
+                  const { data } = await github.rest.packages.getPackageForUser({
+                      package_type: 'container',
+                      package_name: chartName,
+                      username: context.repo.owner,
+                  });
+                  container = data;
+              } catch (error) {
+                  if (error.status !== 404) {
+                      throw error;
+                  }
+              }
+          }
+
+          core.setOutput('exists', typeof container !== "undefined");
