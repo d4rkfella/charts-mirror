@@ -1,0 +1,4 @@
+---
+registry: https://github.com/kubernetes-sigs/security-profiles-operator/releases/download/v0.7.1/security-profiles-operator-0.9.1.tgz
+chart: security-profiles-operator
+version: v0.9.1
