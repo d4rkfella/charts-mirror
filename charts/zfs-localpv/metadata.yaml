@@ -1,4 +1,4 @@
 ---
 registry: https://openebs.github.io/zfs-localpv
 name: zfs-localpv
-version: 2.8.0-develop
+version: 2.8.0
