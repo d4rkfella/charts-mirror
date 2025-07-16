@@ -1,4 +1,4 @@
 ---
 registry: https://helm.cilium.io
-chart: cilium
+name: cilium
 version: 1.18.0-pre.0
