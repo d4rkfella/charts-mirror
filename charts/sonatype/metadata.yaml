@@ -1,4 +1,4 @@
 ---
-registry: https://sonatype.github.io/helm3-charts/nexus-repository-manager
-name: nexus-repository-manager
-version: nxrm-ha-85.0.0
+registry: https://sonatype.github.io/nxrm3-ha-repository
+name: nxrm-ha
+version: 3.85.0
