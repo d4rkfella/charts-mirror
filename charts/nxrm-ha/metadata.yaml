@@ -1,4 +1,4 @@
 ---
-registry: https://sonatype.github.io/helm3-charts/nxrm-ha
+registry: https://sonatype.github.io/helm3-charts/sonatype
 name: nxrm-ha
 version: 85.0.0
