@@ -1,0 +1,4 @@
+---
+registry: https://charts.jfrog.io
+name: artifactory-oss
+version: 107.125.4
