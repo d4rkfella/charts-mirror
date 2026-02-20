@@ -1,0 +1,46 @@
+{
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  "extends": [
+    "config:recommended",
+    "docker:enableMajor",
+    "helpers:pinGitHubActionDigests",
+    "github>d4rkfella/charts-mirror//.renovate/autoMerge.json5",
+    "github>d4rkfella/charts-mirror//.renovate/labels.json5",
+    "github>d4rkfella/charts-mirror//.renovate/semanticCommits.json5",
+    ":automergeBranch",
+    ":dependencyDashboard",
+    ":disableRateLimiting"
+  ],
+  "dependencyDashboardTitle": "Renovate Dashboard 🤖"
+  customManagers: [
+    {
+      customType: 'regex',
+      description: [
+        'Process Chart versions',
+      ],
+      managerFilePatterns: [
+        '/(^|/)metadata\\.ya?ml$/',
+      ],
+      matchStrings: [
+        'registry: (?<registryUrl>\\S+)\nname: (?<depName>\\S+)\nversion: (?<currentValue>\\S+)',
+      ],
+      datasourceTemplate: 'helm',
+    },
+  ],
+  packageRules: [
+    {
+      description: 'Auto-merge Helm Charts',
+      matchDatasources: [
+        'helm',
+      ],
+      automerge: true,
+      automergeType: 'pr',
+      matchUpdateTypes: [
+        'major',
+        'minor',
+        'patch',
+      ],
+      ignoreTests: false,
+    },
+  ],
+}

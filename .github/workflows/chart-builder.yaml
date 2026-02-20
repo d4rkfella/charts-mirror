@@ -1,0 +1,128 @@
+---
+# yaml-language-server: $schema=https://json.schemastore.org/github-workflow.json
+name: Chart Builder
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        type: string
+        description: Chart Name
+        required: true
+      version:
+        type: string
+        description: Chart Version
+        required: true
+      registry:
+        type: string
+        description: Chart Registry
+        required: true
+      release:
+        type: boolean
+        description: Release
+        required: true
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    outputs:
+      chart-exists: ${{ steps.chart.outputs.exists }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Get Repository Name
+        id: repository
+        run: |
+          echo "name=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
+
+      - name: Check For Exising Chart
+        uses: ./.github/actions/chart-exists
+        id: chart
+        with:
+          chart: ${{ steps.repository.outputs.name }}/${{ inputs.name }}
+
+  build:
+    name: Build (${{ inputs.version }})
+    runs-on: ubuntu-latest
+    needs: ["prepare"]
+    steps:
+      - name: Install Helm
+        uses: azure/setup-helm@1a275c3b69536ee54be43f2070a358922e12c8d4 # v4.3.1
+
+      - if: ${{ inputs.release }}
+        name: Install Cosign
+        uses: sigstore/cosign-installer@faadad0cce49287aee09b3a48701e75088a2c6ad # v4.0.0
+        with:
+          cosign-release: v2.6.1
+
+      - if: ${{ inputs.release }}
+        name: Login to GitHub Container Registry
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+
+      - name: Add Helm Repository
+        run: |
+          helm repo add upstream ${{ inputs.registry }}
+
+      - name: Update Helm Repository
+        run: |
+          helm repo update upstream
+
+      - name: Pull Chart
+        run: |
+          helm pull upstream/${{ inputs.name }} --version ${{ inputs.version }}
+
+      - if: ${{ inputs.release }}
+        name: Push Chart
+        run: |
+          helm push *.tgz oci://ghcr.io/${{ github.repository }}
+
+      - if: ${{ inputs.release }}
+        name: Sign artifacts with Cosign
+        run: |
+          cosign sign --yes ghcr.io/${{ github.repository }}/${{ inputs.name }}:${{ inputs.version }}
+
+  release:
+    if: ${{ inputs.release && needs.prepare.outputs.chart-exists != 'true' }}
+    name: Release
+    needs: ["prepare", "build"]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Get Repository Name
+        id: repository
+        run: |
+          echo "name=${GITHUB_REPOSITORY#*/}" >> $GITHUB_OUTPUT
+
+      - name: Generate Token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
+        id: app-token
+        with:
+          app-id: ${{ secrets.BOT_APP_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+
+      - name: Get Release Tag
+        uses: ./.github/actions/release-tag
+        id: release
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Create Release
+        uses: ncipollo/release-action@b7eabc95ff50cbeeedec83973935c8f306dfcd0b # v1.20.0
+        with:
+          body: |
+            > [!NOTE]
+            > A new chart has been added.
+
+            ## 📦 Chart
+
+            **Name**: [${{ inputs.name }}](https://github.com/${{ github.repository }}/pkgs/container/${{ steps.repository.outputs.name }}%2F${{ inputs.name }})
+          tag: ${{ steps.release.outputs.tag }}
+          token: ${{ steps.app-token.outputs.token }}
