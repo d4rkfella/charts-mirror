@@ -11,7 +11,7 @@
     ":dependencyDashboard",
     ":disableRateLimiting"
   ],
-  "dependencyDashboardTitle": "Renovate Dashboard 🤖"
+  "dependencyDashboardTitle": "Renovate Dashboard 🤖",
   customManagers: [
     {
       customType: 'regex',
