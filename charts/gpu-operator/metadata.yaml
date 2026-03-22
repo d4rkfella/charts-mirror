@@ -1,0 +1,4 @@
+---
+registry: https://helm.ngc.nvidia.com/nvidia
+name: gpu-operator
+version: 26.3.0
