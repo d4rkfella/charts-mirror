@@ -79,13 +79,17 @@ jobs:
 
       - if: ${{ inputs.release }}
         name: Push Chart
+        id: push
         run: |
-          helm push *.tgz oci://ghcr.io/${{ github.repository }}
+          OUTPUT=$(helm push *.tgz oci://ghcr.io/${{ github.repository }})
+          echo "$OUTPUT"
+          DIGEST=$(echo "$OUTPUT" | sed -n 's/Digest: //p')
+          echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
 
       - if: ${{ inputs.release }}
         name: Sign artifacts with Cosign
         run: |
-          cosign sign --yes ghcr.io/${{ github.repository }}/${{ inputs.name }}:${{ inputs.version }}
+          cosign sign --yes ghcr.io/${{ github.repository }}/${{ inputs.name }}@${{ steps.push.outputs.digest }}
 
   release:
     if: ${{ inputs.release && needs.prepare.outputs.chart-exists != 'true' }}
