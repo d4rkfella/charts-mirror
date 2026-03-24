@@ -91,42 +91,28 @@ jobs:
           
           echo "🔧 Sanitizing version labels in $CHART_DIR/templates..."
           
-          # Counter for tracking changes
           FILES_MODIFIED=0
           
-          # Find all YAML and template files
           while IFS= read -r -d '' file; do
-            # Check if file contains .Chart.Version references
             if grep -q '\.Chart\.Version' "$file"; then
               echo "  Processing: $file"
               
-              # Create backup
               cp "$file" "$file.bak"
-              
-              # Match various patterns of .Chart.Version usage:
-              # {{ .Chart.Version }}
-              # {{.Chart.Version}}
-              # {{- .Chart.Version }}
-              # {{ .Chart.Version -}}
-              # {{- .Chart.Version -}}
-              # With any amount of whitespace
               
               sed -i -E 's/\{\{-?[[:space:]]*\.Chart\.Version[[:space:]]*-?\}\}/{{ .Chart.Version | split "+" | first | trunc 63 }}/g' "$file"
               
-              # Check if file actually changed
               if ! cmp -s "$file" "$file.bak"; then
-                ((FILES_MODIFIED++))
+                FILES_MODIFIED=$((FILES_MODIFIED + 1))
                 echo "    ✅ Modified"
               else
                 echo "    ⏭️  No changes needed"
               fi
               
-              # Remove backup
               rm "$file.bak"
             fi
           done < <(find "$CHART_DIR/templates" -type f \( -name "*.yaml" -o -name "*.yml" -o -name "*.tpl" \) -print0)
           
-          if [ $FILES_MODIFIED -gt 0 ]; then
+          if [ "$FILES_MODIFIED" -gt 0 ]; then
             echo "✅ Sanitized $FILES_MODIFIED file(s)"
           else
             echo "ℹ️  No .Chart.Version references found or no changes needed"
