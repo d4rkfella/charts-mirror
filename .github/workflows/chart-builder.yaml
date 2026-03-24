@@ -99,7 +99,7 @@ jobs:
               
               cp "$file" "$file.bak"
               
-              sed -i -E 's/\{\{-?[[:space:]]*\.Chart\.Version[[:space:]]*-?\}\}/{{ .Chart.Version | split "+" | first | trunc 63 }}/g' "$file"
+              sed -i -E 's/\{\{-?[[:space:]]*\.Chart\.Version[[:space:]]*-?\}\}/{{ .Chart.Version | splitList "+" | first | trunc 63 }}/g' "$file"
               
               if ! cmp -s "$file" "$file.bak"; then
                 FILES_MODIFIED=$((FILES_MODIFIED + 1))
