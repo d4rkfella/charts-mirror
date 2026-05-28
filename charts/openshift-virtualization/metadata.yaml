@@ -1,0 +1,4 @@
+---
+registry: https://charts.stderr.at
+name: openshift-virtualization
+version: 1.0.2
