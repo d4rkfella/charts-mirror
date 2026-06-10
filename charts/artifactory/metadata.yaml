@@ -1,4 +1,4 @@
 ---
 registry: https://charts.jfrog.io
 name: artifactory
-version: 107.146.15
+version: 107.146.17
