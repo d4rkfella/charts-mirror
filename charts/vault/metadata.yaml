@@ -1,4 +1,0 @@
----
-registry: https://helm.releases.hashicorp.com
-name: vault
-version: 0.34.1
